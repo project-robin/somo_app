@@ -253,7 +253,7 @@ export class AstroShivaClient {
    */
   private getApiUrl(path: string): string {
     if (this.baseUrl) {
-      return `${this.baseUrl}${path}`;
+      return `${this.baseUrl}/api${path}`;
     }
     return `/api${path}`;
   }
