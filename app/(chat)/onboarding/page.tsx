@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { astroShivaClient } from '@/lib/api-client';
-import { CelestialBackground } from '@/components/CelestialBackground';
 
 interface GeocodingResult {
   display_name: string;
@@ -38,6 +37,96 @@ const steps = [
   { id: 'birth', title: 'Birth', icon: Calendar },
   { id: 'location', title: 'Place', icon: MapPin },
 ];
+
+// Ephemeris date range constants
+const MIN_EPHEMERIS_DATE = '1899-07-29';
+const MAX_EPHEMERIS_DATE = '2053-10-09';
+
+// Animated star field component - matches homepage
+function StarField({ count = 60 }: { count?: number }) {
+  const [stars, setStars] = useState<Array<{
+    id: number;
+    x: number;
+    y: number;
+    size: number;
+    opacity: number;
+    duration: number;
+    delay: number;
+  }>>([]);
+
+  useEffect(() => {
+    const generatedStars = Array.from({ length: count }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      size: Math.random() * 2 + 0.5,
+      opacity: Math.random() * 0.6 + 0.2,
+      duration: Math.random() * 4 + 3,
+      delay: Math.random() * 8,
+    }));
+    setStars(generatedStars);
+  }, [count]);
+
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {stars.map((star) => (
+        <motion.div
+          key={star.id}
+          className="absolute rounded-full bg-white"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: star.size,
+            height: star.size,
+          }}
+          initial={{ opacity: 0 }}
+          animate={{
+            opacity: [0, star.opacity, star.opacity * 0.4, star.opacity, 0],
+          }}
+          transition={{
+            duration: star.duration,
+            delay: star.delay,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Floating cosmic particles - matches homepage
+function CosmicParticles() {
+  return (
+    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute w-1 h-1 rounded-full"
+          style={{
+            background: i % 2 === 0
+              ? 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%)'
+              : 'radial-gradient(circle, rgba(200,200,255,0.6) 0%, transparent 70%)',
+            left: `${15 + i * 14}%`,
+            top: `${20 + (i % 4) * 18}%`,
+          }}
+          animate={{
+            y: [-30, 30, -30],
+            x: [-15, 15, -15],
+            opacity: [0.2, 0.6, 0.2],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{
+            duration: 10 + i * 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: i * 1.2,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
 
 export default function OnboardingPage() {
   const router = useRouter();
@@ -77,12 +166,10 @@ export default function OnboardingPage() {
       return;
     }
 
-    // Clear previous timeout
     if (geocodingTimeoutRef.current) {
       clearTimeout(geocodingTimeoutRef.current);
     }
 
-    // Debounce geocoding request
     geocodingTimeoutRef.current = setTimeout(async () => {
       setIsGeocoding(true);
       try {
@@ -150,7 +237,6 @@ export default function OnboardingPage() {
           );
 
           if (profile.success && profile.data.status === 'completed') {
-            // Set onboarding cookie so middleware allows access to /chat
             document.cookie = 'onboarding_status=completed; path=/; max-age=604800; SameSite=Lax';
             router.push('/chat');
           }
@@ -198,17 +284,12 @@ export default function OnboardingPage() {
     }
   };
 
-  // Ephemeris date range constants
-const MIN_EPHEMERIS_DATE = '1899-07-29';
-const MAX_EPHEMERIS_DATE = '2053-10-09';
-
-const isStepValid = () => {
+  const isStepValid = () => {
     switch (currentStep) {
       case 0:
         return formData.name.length >= 2;
       case 1: {
         if (!formData.dateOfBirth || !formData.timeOfBirth) return false;
-        // Validate date is within ephemeris range
         const date = new Date(formData.dateOfBirth);
         const minDate = new Date(MIN_EPHEMERIS_DATE);
         const maxDate = new Date(MAX_EPHEMERIS_DATE);
@@ -247,8 +328,36 @@ const isStepValid = () => {
   };
 
   return (
-    <div className="flex-1 min-h-screen flex items-center justify-center p-3 sm:p-4 bg-[var(--bg-primary)] w-full grok relative overflow-hidden">
-      <CelestialBackground starCount={40} />
+    <div className="min-h-screen flex items-center justify-center bg-black p-3 sm:p-4 relative overflow-hidden">
+      {/* Background Effects - matches homepage exactly */}
+      <StarField count={70} />
+      <CosmicParticles />
+
+      {/* Ambient gradient orbs - matches homepage */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute -top-1/4 -left-1/4 w-[600px] h-[600px] md:w-[800px] md:h-[800px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, transparent 60%)',
+          }}
+        />
+        <motion.div
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.4, 0.2],
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: 'easeInOut', delay: 5 }}
+          className="absolute -bottom-1/4 -right-1/4 w-[500px] h-[500px] md:w-[700px] md:h-[700px] rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(245, 158, 11, 0.1) 0%, transparent 60%)',
+          }}
+        />
+      </div>
 
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -256,28 +365,48 @@ const isStepValid = () => {
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         className="w-full max-w-lg mx-auto relative z-10 safe-area-pt safe-area-pb"
       >
-        <div className="bg-[var(--surface-primary)] border border-[var(--border-subtle)] rounded-2xl p-5 sm:p-8 backdrop-blur-xl">
-          <div className="text-center mb-8 sm:mb-10">
-            <h1 className="text-xl sm:text-2xl font-semibold text-[var(--text-primary)] mb-2 font-playfair italic">
+        {/* Card with glass morphism - matching homepage style */}
+        <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 sm:p-8 backdrop-blur-xl">
+          {/* Beta Badge - matching homepage */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="flex justify-center mb-6"
+          >
+            <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-white/[0.03] border border-white/[0.08] backdrop-blur-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400/60 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400"></span>
+              </span>
+              <span className="text-[10px] font-semibold tracking-[0.2em] uppercase text-white/60">
+                Profile Setup
+              </span>
+            </div>
+          </motion.div>
+
+          <div className="text-center mb-8">
+            <h1 className="text-xl sm:text-2xl font-semibold text-white mb-2 font-playfair italic">
               Your Profile
             </h1>
-            <p className="text-xs sm:text-sm text-[var(--text-tertiary)] font-light tracking-wide">
+            <p className="text-xs sm:text-sm text-white/50 font-light tracking-wide">
               Initialize your cosmic blueprint
             </p>
           </div>
 
           {step === 'form' && (
             <>
+              {/* Step indicators */}
               <div className="flex items-center justify-center gap-1.5 mb-10">
                 {steps.map((s, i) => (
                   <div key={s.id} className="flex items-center">
                     <div
                       className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${
-                        i <= currentStep ? 'bg-[var(--text-primary)] scale-125' : 'bg-[var(--border-default)]'
+                        i <= currentStep ? 'bg-white scale-125' : 'bg-white/20'
                       }`}
                     />
                     {i < steps.length - 1 && (
-                      <div className={`w-8 h-px mx-1.5 transition-colors duration-500 ${i < currentStep ? 'bg-[var(--text-primary)]' : 'bg-[var(--border-default)]'}`} />
+                      <div className={`w-8 h-px mx-1.5 transition-colors duration-500 ${i < currentStep ? 'bg-white' : 'bg-white/20'}`} />
                     )}
                   </div>
                 ))}
@@ -294,7 +423,7 @@ const isStepValid = () => {
                       className="space-y-4"
                     >
                       <div className="space-y-2">
-                        <Label htmlFor="name" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
+                        <Label htmlFor="name" className="text-white/70 text-[11px] font-bold uppercase tracking-wider ml-1">
                           Full Name
                         </Label>
                         <Input
@@ -306,7 +435,7 @@ const isStepValid = () => {
                           required
                           minLength={2}
                           maxLength={100}
-                          className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--border-hover)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
+                          className="bg-white/[0.03] border-white/[0.08] text-white placeholder:text-white/30 focus:border-white/20 focus:bg-white/[0.05] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                         />
                       </div>
                     </motion.div>
@@ -321,7 +450,7 @@ const isStepValid = () => {
                       className="space-y-4"
                     >
                       <div className="space-y-2">
-                        <Label htmlFor="dateOfBirth" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
+                        <Label htmlFor="dateOfBirth" className="text-white/70 text-[11px] font-bold uppercase tracking-wider ml-1">
                           Date of Birth
                         </Label>
                         <Input
@@ -332,14 +461,14 @@ const isStepValid = () => {
                           required
                           min={MIN_EPHEMERIS_DATE}
                           max={MAX_EPHEMERIS_DATE}
-                          className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
+                          className="bg-white/[0.03] border-white/[0.08] text-white focus:border-white/20 focus:bg-white/[0.05] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                         />
-                        <p className="text-[10px] text-[var(--text-muted)] ml-1">
+                        <p className="text-[10px] text-white/30 ml-1">
                           Valid range: July 29, 1899 - October 9, 2053
                         </p>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="timeOfBirth" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
+                        <Label htmlFor="timeOfBirth" className="text-white/70 text-[11px] font-bold uppercase tracking-wider ml-1">
                           Time of Birth
                         </Label>
                         <Input
@@ -348,7 +477,7 @@ const isStepValid = () => {
                           value={formData.timeOfBirth}
                           onChange={(e) => setFormData({ ...formData, timeOfBirth: e.target.value })}
                           required
-                          className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
+                          className="bg-white/[0.03] border-white/[0.08] text-white focus:border-white/20 focus:bg-white/[0.05] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                         />
                       </div>
                     </motion.div>
@@ -363,7 +492,7 @@ const isStepValid = () => {
                       className="space-y-4"
                     >
                       <div className="space-y-2 relative">
-                        <Label htmlFor="place" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
+                        <Label htmlFor="place" className="text-white/70 text-[11px] font-bold uppercase tracking-wider ml-1">
                           Place of Birth
                         </Label>
                         <div className="relative">
@@ -376,13 +505,13 @@ const isStepValid = () => {
                             onFocus={() => geocodingResults.length > 0 && setShowGeocodingResults(true)}
                             required
                             minLength={2}
-                            className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--border-hover)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation pr-10"
+                            className="bg-white/[0.03] border-white/[0.08] text-white placeholder:text-white/30 focus:border-white/20 focus:bg-white/[0.05] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation pr-10"
                           />
                           <div className="absolute right-3 top-1/2 -translate-y-1/2">
                             {isGeocoding ? (
-                              <Loader2 className="w-4 h-4 text-[var(--text-tertiary)] animate-spin" />
+                              <Loader2 className="w-4 h-4 text-white/50 animate-spin" />
                             ) : (
-                              <Search className="w-4 h-4 text-[var(--text-tertiary)]" />
+                              <Search className="w-4 h-4 text-white/50" />
                             )}
                           </div>
                         </div>
@@ -395,10 +524,10 @@ const isStepValid = () => {
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: -5, scale: 0.98 }}
                               transition={{ duration: 0.15 }}
-                              className="absolute z-50 left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-56 overflow-y-auto"
+                              className="absolute z-50 left-0 right-0 top-full mt-2 bg-slate-900 border border-white/10 rounded-xl shadow-2xl max-h-56 overflow-y-auto"
                             >
-                              <div className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-                                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                              <div className="px-3 py-2 bg-white/[0.03] border-b border-white/[0.08]">
+                                <p className="text-[10px] font-semibold uppercase tracking-wider text-white/50">
                                   Select a location
                                 </p>
                               </div>
@@ -407,15 +536,15 @@ const isStepValid = () => {
                                   key={index}
                                   type="button"
                                   onClick={() => handleSelectLocation(result)}
-                                  className="w-full px-4 py-3 text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 last:rounded-b-xl"
+                                  className="w-full px-4 py-3 text-left hover:bg-white/[0.05] transition-colors border-b border-white/[0.04] last:border-0 last:rounded-b-xl"
                                 >
-                                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                                  <p className="text-sm font-medium text-white truncate">
                                     {result.display_name.split(',')[0]}
                                   </p>
-                                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                                  <p className="text-xs text-white/40 mt-0.5 truncate">
                                     {result.display_name.split(',').slice(1).join(',')}
                                   </p>
-                                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
+                                  <p className="text-[10px] text-amber-400/80 mt-1 font-mono">
                                     {parseFloat(result.lat).toFixed(4)}, {parseFloat(result.lon).toFixed(4)}
                                   </p>
                                 </button>
@@ -437,7 +566,7 @@ const isStepValid = () => {
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label htmlFor="latitude" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">Latitude</Label>
+                          <Label htmlFor="latitude" className="text-white/70 text-[11px] font-bold uppercase tracking-wider ml-1">Latitude</Label>
                           <Input
                             id="latitude"
                             type="number"
@@ -448,11 +577,11 @@ const isStepValid = () => {
                             required
                             min={-90}
                             max={90}
-                            className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
+                            className="bg-white/[0.03] border-white/[0.08] text-white focus:border-white/20 focus:bg-white/[0.05] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="longitude" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">Longitude</Label>
+                          <Label htmlFor="longitude" className="text-white/70 text-[11px] font-bold uppercase tracking-wider ml-1">Longitude</Label>
                           <Input
                             id="longitude"
                             type="number"
@@ -463,7 +592,7 @@ const isStepValid = () => {
                             required
                             min={-180}
                             max={180}
-                            className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
+                            className="bg-white/[0.03] border-white/[0.08] text-white focus:border-white/20 focus:bg-white/[0.05] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                           />
                         </div>
                       </div>
@@ -471,7 +600,7 @@ const isStepValid = () => {
                       <Button
                         type="button"
                         variant="ghost"
-                        className="w-full text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] rounded-xl h-11 sm:h-10 text-[10px] font-bold uppercase tracking-widest touch-manipulation"
+                        className="w-full text-white/50 hover:text-white hover:bg-white/[0.05] rounded-xl h-11 sm:h-10 text-[10px] font-bold uppercase tracking-widest touch-manipulation"
                         onClick={handleGetCurrentLocation}
                       >
                         <MapPin className="w-3.5 h-3.5 mr-2" />
@@ -485,7 +614,7 @@ const isStepValid = () => {
                   <motion.div
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-[var(--error-soft)] border border-[var(--error-soft)] text-[var(--text-secondary)] p-4 rounded-xl text-xs leading-relaxed"
+                    className="bg-white/[0.03] border border-white/[0.08] text-white/70 p-4 rounded-xl text-xs leading-relaxed"
                   >
                     {error}
                   </motion.div>
@@ -497,7 +626,7 @@ const isStepValid = () => {
                       type="button"
                       variant="ghost"
                       onClick={prevStep}
-                      className="flex-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] rounded-xl h-12 text-sm touch-manipulation"
+                      className="flex-1 text-white/50 hover:text-white hover:bg-white/[0.05] rounded-xl h-12 text-sm touch-manipulation"
                     >
                       Back
                     </Button>
@@ -507,7 +636,7 @@ const isStepValid = () => {
                       type="button"
                       onClick={nextStep}
                       disabled={!isStepValid()}
-                      className="flex-1 bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] text-[var(--bg-primary)] border-0 rounded-xl h-12 text-sm font-medium transition-all duration-300 disabled:opacity-30 touch-manipulation"
+                      className="flex-1 bg-white hover:bg-white/90 text-black border-0 rounded-xl h-12 text-sm font-medium transition-all duration-300 disabled:opacity-30 touch-manipulation shadow-lg shadow-white/5"
                     >
                       Continue
                       <ChevronRight className="w-4 h-4 ml-2" />
@@ -516,7 +645,7 @@ const isStepValid = () => {
                     <Button
                       type="submit"
                       disabled={!isFormValid() || isLoading}
-                      className="flex-1 bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] text-[var(--bg-primary)] border-0 rounded-xl h-12 text-sm font-medium transition-all duration-300 disabled:opacity-30 touch-manipulation"
+                      className="flex-1 bg-white hover:bg-white/90 text-black border-0 rounded-xl h-12 text-sm font-medium transition-all duration-300 disabled:opacity-30 touch-manipulation shadow-lg shadow-white/5"
                     >
                       {isLoading ? (
                         <Loader2 className="w-5 h-5 animate-spin mx-auto" />
@@ -542,12 +671,12 @@ const isStepValid = () => {
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                className="w-10 h-10 mx-auto mb-6 rounded-full border-2 border-[var(--border-subtle)] border-t-[var(--text-primary)]"
+                className="w-10 h-10 mx-auto mb-6 rounded-full border-2 border-white/20 border-t-white"
               />
-              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2 font-playfair italic">
+              <h3 className="text-lg font-medium text-white mb-2 font-playfair italic">
                 Architecting your profile
               </h3>
-              <p className="text-sm text-[var(--text-tertiary)] font-light tracking-wide">
+              <p className="text-sm text-white/50 font-light tracking-wide">
                 Aligning the stars...
               </p>
             </motion.div>
