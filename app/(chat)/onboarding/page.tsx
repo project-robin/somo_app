@@ -1,15 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, MapPin, Calendar, Clock, ChevronRight, Check, Loader2 } from 'lucide-react';
+import { User, MapPin, Calendar, Clock, ChevronRight, Check, Loader2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { astroShivaClient } from '@/lib/api-client';
 import { CelestialBackground } from '@/components/CelestialBackground';
+
+interface GeocodingResult {
+  display_name: string;
+  lat: string;
+  lon: string;
+  address?: {
+    city?: string;
+    town?: string;
+    state?: string;
+    country?: string;
+  };
+}
 
 interface OnboardingFormData {
   name: string;
@@ -44,12 +56,68 @@ export default function OnboardingPage() {
   const [error, setError] = useState('');
   const [step, setStep] = useState<'form' | 'processing'>('form');
 
+  // Geocoding state
+  const [geocodingResults, setGeocodingResults] = useState<GeocodingResult[]>([]);
+  const [isGeocoding, setIsGeocoding] = useState(false);
+  const [showGeocodingResults, setShowGeocodingResults] = useState(false);
+  const geocodingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     if (!isLoaded) return;
     if (!isSignedIn) {
       router.push('/login');
     }
   }, [isLoaded, isSignedIn, router]);
+
+  // Debounced geocoding when place changes
+  useEffect(() => {
+    if (currentStep !== 2 || formData.place.length < 3) {
+      setGeocodingResults([]);
+      setShowGeocodingResults(false);
+      return;
+    }
+
+    // Clear previous timeout
+    if (geocodingTimeoutRef.current) {
+      clearTimeout(geocodingTimeoutRef.current);
+    }
+
+    // Debounce geocoding request
+    geocodingTimeoutRef.current = setTimeout(async () => {
+      setIsGeocoding(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.place)}&limit=5&accept-language=en`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setGeocodingResults(data);
+          setShowGeocodingResults(data.length > 0);
+        }
+      } catch (err) {
+        console.error('Geocoding error:', err);
+      } finally {
+        setIsGeocoding(false);
+      }
+    }, 500);
+
+    return () => {
+      if (geocodingTimeoutRef.current) {
+        clearTimeout(geocodingTimeoutRef.current);
+      }
+    };
+  }, [formData.place, currentStep]);
+
+  const handleSelectLocation = (result: GeocodingResult) => {
+    setFormData(prev => ({
+      ...prev,
+      place: result.display_name.split(',')[0] + ', ' + (result.address?.country || result.display_name.split(',').pop()?.trim() || ''),
+      latitude: parseFloat(result.lat),
+      longitude: parseFloat(result.lon),
+    }));
+    setShowGeocodingResults(false);
+    setGeocodingResults([]);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,6 +150,8 @@ export default function OnboardingPage() {
           );
 
           if (profile.success && profile.data.status === 'completed') {
+            // Set onboarding cookie so middleware allows access to /chat
+            document.cookie = 'onboarding_status=completed; path=/; max-age=604800; SameSite=Lax';
             router.push('/chat');
           }
         } catch (pollError) {
@@ -277,20 +347,68 @@ export default function OnboardingPage() {
                       exit={{ opacity: 0, x: -10 }}
                       className="space-y-4"
                     >
-                      <div className="space-y-2">
+                      <div className="space-y-2 relative">
                         <Label htmlFor="place" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
                           Place of Birth
                         </Label>
-                        <Input
-                          id="place"
-                          type="text"
-                          placeholder="City, Country"
-                          value={formData.place}
-                          onChange={(e) => setFormData({ ...formData, place: e.target.value })}
-                          required
-                          minLength={2}
-                          className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--border-hover)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
-                        />
+                        <div className="relative">
+                          <Input
+                            id="place"
+                            type="text"
+                            placeholder="City, Country"
+                            value={formData.place}
+                            onChange={(e) => setFormData({ ...formData, place: e.target.value })}
+                            onFocus={() => geocodingResults.length > 0 && setShowGeocodingResults(true)}
+                            required
+                            minLength={2}
+                            className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--border-hover)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation pr-10"
+                          />
+                          <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                            {isGeocoding ? (
+                              <Loader2 className="w-4 h-4 text-[var(--text-tertiary)] animate-spin" />
+                            ) : (
+                              <Search className="w-4 h-4 text-[var(--text-tertiary)]" />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Geocoding Results Dropdown */}
+                        <AnimatePresence>
+                          {showGeocodingResults && geocodingResults.length > 0 && (
+                            <motion.div
+                              initial={{ opacity: 0, y: -5 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -5 }}
+                              className="absolute z-50 left-0 right-0 top-full mt-1 bg-[var(--surface-primary)] border border-[var(--border-default)] rounded-xl shadow-lg max-h-48 overflow-y-auto"
+                            >
+                              {geocodingResults.map((result, index) => (
+                                <button
+                                  key={index}
+                                  type="button"
+                                  onClick={() => handleSelectLocation(result)}
+                                  className="w-full px-4 py-3 text-left hover:bg-[var(--surface-hover)] transition-colors border-b border-[var(--border-subtle)] last:border-0"
+                                >
+                                  <p className="text-sm text-[var(--text-primary)] truncate">
+                                    {result.display_name}
+                                  </p>
+                                  <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
+                                    {parseFloat(result.lat).toFixed(4)}, {parseFloat(result.lon).toFixed(4)}
+                                  </p>
+                                </button>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+
+                        {/* Click outside to close dropdown */}
+                        {showGeocodingResults && (
+                          <button
+                            type="button"
+                            className="fixed inset-0 z-40 bg-transparent"
+                            onClick={() => setShowGeocodingResults(false)}
+                            tabIndex={-1}
+                          />
+                        )}
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
