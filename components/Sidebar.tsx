@@ -50,14 +50,14 @@ function SessionList({
     <div className="space-y-0.5">
       <AnimatePresence mode="popLayout">
         {sessions.map((session, index) => (
-          <motion.button
+          <motion.div
             key={session.id}
             initial={{ opacity: 0, x: -8 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -8, scale: 0.95 }}
             transition={{ delay: index * 0.03, duration: 0.2 }}
             onClick={() => onSelectSession(session.id)}
-            className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden ${
+            className={`w-full text-left p-2.5 rounded-xl transition-all duration-200 group relative overflow-hidden cursor-pointer ${
               currentSessionId === session.id
                 ? 'bg-gradient-to-r from-[var(--surface-secondary)] to-[var(--surface-primary)] border border-[var(--border-default)]'
                 : 'hover:bg-[var(--surface-primary)] border border-transparent'
@@ -100,7 +100,7 @@ function SessionList({
                 </button>
               )}
             </div>
-          </motion.button>
+          </motion.div>
         ))}
       </AnimatePresence>
     </div>
@@ -133,19 +133,23 @@ export function Sidebar({
       <Button
         variant="ghost"
         size="icon"
-        className="md:hidden fixed top-3 left-3 z-50 text-[var(--text-primary)] bg-[var(--bg-primary)] border border-[var(--border-subtle)] h-9 w-9 rounded-xl shadow-lg"
+        className="md:hidden fixed top-3 left-3 z-50 text-[var(--text-primary)] bg-[var(--bg-primary)] border border-[var(--border-subtle)] h-10 w-10 rounded-xl shadow-lg touch-manipulation"
         onClick={() => setIsOpen(true)}
+        aria-label="Open menu"
       >
-        <Menu className="w-4 h-4" />
+        <Menu className="w-5 h-5" />
       </Button>
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
         <SheetContent className="w-full sm:w-80 p-0 bg-[var(--bg-primary)] border-r border-[var(--border-subtle)]">
-          <SheetHeader className="p-4 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)]">
+          <SheetHeader className="p-4 border-b border-[var(--border-subtle)] bg-[var(--bg-secondary)] flex flex-row items-center justify-between">
             <SheetTitle className="text-[var(--text-primary)] text-base font-semibold flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[var(--accent-warm)]" />
               Conversations
             </SheetTitle>
+            <span className="px-2 py-0.5 rounded-full bg-[var(--surface-secondary)] border border-[var(--border-subtle)] text-[8px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">
+              Alpha
+            </span>
           </SheetHeader>
 
           <div className="flex flex-col h-[calc(100%-60px)]">
@@ -231,6 +235,15 @@ export function DesktopSidebar({
 
   return (
     <aside className="hidden w-72 border-r border-[var(--border-subtle)] lg:flex flex-col bg-[var(--bg-secondary)]">
+      <div className="p-4 border-b border-[var(--border-subtle)] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-[var(--accent-warm)]" />
+          <span className="text-sm font-semibold text-[var(--text-primary)] tracking-tight">Astro Shiva</span>
+        </div>
+        <span className="px-2 py-0.5 rounded-full bg-[var(--surface-secondary)] border border-[var(--border-subtle)] text-[8px] font-bold uppercase tracking-widest text-[var(--text-tertiary)]">
+          Alpha
+        </span>
+      </div>
       <div className="p-4 border-b border-[var(--border-subtle)]">
         <Button
           variant="outline"

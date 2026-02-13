@@ -252,6 +252,37 @@
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: none;
+}
+
+/* Mobile-first optimizations */
+@media (max-width: 768px) {
+  .grok .glass-panel {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* Refined interactive states */
+.grok .interactive-element {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.grok .interactive-element:active {
+  transform: scale(0.98);
+  opacity: 0.8;
+}
+
+/* Ultra-thin borders for high-end feel */
+.grok .thin-border {
+  border: 0.5px solid var(--border-subtle);
+}
+
+/* Custom selection */
+.grok ::selection {
+  background: var(--text-primary);
+  color: var(--bg-primary);
 }
 
 /* Card styles for Grok theme */
@@ -590,6 +621,42 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Mobile-safe utilities */
+.safe-area-pb {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.safe-area-pt {
+  padding-top: max(1rem, env(safe-area-inset-top));
+}
+
+/* Touch manipulation for mobile */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Prevent text selection on interactive elements */
+.no-select {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Mobile viewport fix */
+@supports (height: 100dvh) {
+  .min-h-screen {
+    min-height: 100dvh;
+  }
+
+  .h-screen {
+    height: 100dvh;
   }
 }
 

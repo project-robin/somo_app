@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, MapPin, Calendar, Clock, ChevronRight, Check } from 'lucide-react';
+import { User, MapPin, Calendar, Clock, ChevronRight, Check, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { astroShivaClient } from '@/lib/api-client';
+import { CelestialBackground } from '@/components/CelestialBackground';
 
 interface OnboardingFormData {
   name: string;
@@ -166,41 +167,43 @@ export default function OnboardingPage() {
   };
 
   return (
-    <div className="flex-1 min-h-screen flex items-center justify-center p-4 bg-[var(--bg-primary)] w-full">
+    <div className="flex-1 min-h-screen flex items-center justify-center p-3 sm:p-4 bg-[var(--bg-primary)] w-full grok relative overflow-hidden">
+      <CelestialBackground starCount={40} />
+
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-lg mx-auto"
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-lg mx-auto relative z-10 safe-area-pt safe-area-pb"
       >
-        <div className="bg-[var(--surface-primary)] border border-[var(--border-subtle)] rounded-xl p-8">
-          <div className="text-center mb-6">
-            <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-1">
+        <div className="bg-[var(--surface-primary)] border border-[var(--border-subtle)] rounded-2xl p-5 sm:p-8 backdrop-blur-xl">
+          <div className="text-center mb-8 sm:mb-10">
+            <h1 className="text-xl sm:text-2xl font-semibold text-[var(--text-primary)] mb-2 font-playfair italic">
               Your Profile
             </h1>
-            <p className="text-sm text-[var(--text-tertiary)]">
-              Tell us about yourself
+            <p className="text-xs sm:text-sm text-[var(--text-tertiary)] font-light tracking-wide">
+              Initialize your cosmic blueprint
             </p>
           </div>
 
           {step === 'form' && (
             <>
-              <div className="flex items-center justify-center gap-1 mb-6">
+              <div className="flex items-center justify-center gap-1.5 mb-10">
                 {steps.map((s, i) => (
                   <div key={s.id} className="flex items-center">
                     <div
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        i <= currentStep ? 'bg-[var(--text-primary)]' : 'bg-[var(--border-default)]'
+                      className={`w-1.5 h-1.5 rounded-full transition-all duration-500 ${
+                        i <= currentStep ? 'bg-[var(--text-primary)] scale-125' : 'bg-[var(--border-default)]'
                       }`}
                     />
                     {i < steps.length - 1 && (
-                      <div className={`w-6 h-px mx-1 ${i < currentStep ? 'bg-[var(--text-primary)]' : 'bg-[var(--border-default)]'}`} />
+                      <div className={`w-8 h-px mx-1.5 transition-colors duration-500 ${i < currentStep ? 'bg-[var(--text-primary)]' : 'bg-[var(--border-default)]'}`} />
                     )}
                   </div>
                 ))}
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <AnimatePresence mode="wait">
                   {currentStep === 0 && (
                     <motion.div
@@ -208,22 +211,22 @@ export default function OnboardingPage() {
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}
-                      className="space-y-3"
+                      className="space-y-4"
                     >
-                      <div>
-                        <Label htmlFor="name" className="text-[var(--text-secondary)] text-sm mb-2 block">
+                      <div className="space-y-2">
+                        <Label htmlFor="name" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
                           Full Name
                         </Label>
                         <Input
                           id="name"
                           type="text"
-                          placeholder="Enter your name"
+                          placeholder="Your name"
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           required
                           minLength={2}
                           maxLength={100}
-                          className="bg-[var(--surface-primary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[var(--border-hover)] rounded-lg h-10 text-sm"
+                          className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--border-hover)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                         />
                       </div>
                     </motion.div>
@@ -235,10 +238,10 @@ export default function OnboardingPage() {
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}
-                      className="space-y-3"
+                      className="space-y-4"
                     >
-                      <div>
-                        <Label htmlFor="dateOfBirth" className="text-[var(--text-secondary)] text-sm mb-2 block">
+                      <div className="space-y-2">
+                        <Label htmlFor="dateOfBirth" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
                           Date of Birth
                         </Label>
                         <Input
@@ -247,11 +250,11 @@ export default function OnboardingPage() {
                           value={formData.dateOfBirth}
                           onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                           required
-                          className="bg-[var(--surface-primary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-lg h-10 text-sm"
+                          className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="timeOfBirth" className="text-[var(--text-secondary)] text-sm mb-2 block">
+                      <div className="space-y-2">
+                        <Label htmlFor="timeOfBirth" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
                           Time of Birth
                         </Label>
                         <Input
@@ -260,7 +263,7 @@ export default function OnboardingPage() {
                           value={formData.timeOfBirth}
                           onChange={(e) => setFormData({ ...formData, timeOfBirth: e.target.value })}
                           required
-                          className="bg-[var(--surface-primary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-lg h-10 text-sm"
+                          className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                         />
                       </div>
                     </motion.div>
@@ -272,10 +275,10 @@ export default function OnboardingPage() {
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}
-                      className="space-y-3"
+                      className="space-y-4"
                     >
-                      <div>
-                        <Label htmlFor="place" className="text-[var(--text-secondary)] text-sm mb-2 block">
+                      <div className="space-y-2">
+                        <Label htmlFor="place" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
                           Place of Birth
                         </Label>
                         <Input
@@ -286,13 +289,13 @@ export default function OnboardingPage() {
                           onChange={(e) => setFormData({ ...formData, place: e.target.value })}
                           required
                           minLength={2}
-                          className="bg-[var(--surface-primary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[var(--border-hover)] rounded-lg h-10 text-sm"
+                          className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--border-hover)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                         />
                       </div>
 
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label htmlFor="latitude" className="text-[var(--text-secondary)] text-sm mb-2 block">Latitude</Label>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="latitude" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">Latitude</Label>
                           <Input
                             id="latitude"
                             type="number"
@@ -303,11 +306,11 @@ export default function OnboardingPage() {
                             required
                             min={-90}
                             max={90}
-                            className="bg-[var(--surface-primary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-lg h-10 text-sm"
+                            className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                           />
                         </div>
-                        <div>
-                          <Label htmlFor="longitude" className="text-[var(--text-secondary)] text-sm mb-2 block">Longitude</Label>
+                        <div className="space-y-2">
+                          <Label htmlFor="longitude" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">Longitude</Label>
                           <Input
                             id="longitude"
                             type="number"
@@ -318,18 +321,18 @@ export default function OnboardingPage() {
                             required
                             min={-180}
                             max={180}
-                            className="bg-[var(--surface-primary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-lg h-10 text-sm"
+                            className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                           />
                         </div>
                       </div>
 
                       <Button
                         type="button"
-                        variant="outline"
-                        className="w-full border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)] bg-transparent rounded-lg h-9 text-sm"
+                        variant="ghost"
+                        className="w-full text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] rounded-xl h-11 sm:h-10 text-[10px] font-bold uppercase tracking-widest touch-manipulation"
                         onClick={handleGetCurrentLocation}
                       >
-                        <MapPin className="w-4 h-4 mr-2" />
+                        <MapPin className="w-3.5 h-3.5 mr-2" />
                         Use Current Location
                       </Button>
                     </motion.div>
@@ -340,19 +343,19 @@ export default function OnboardingPage() {
                   <motion.div
                     initial={{ opacity: 0, y: -5 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-[var(--surface-secondary)] border border-[var(--border-subtle)] text-[var(--text-secondary)] p-3 rounded-lg text-sm"
+                    className="bg-[var(--error-soft)] border border-[var(--error-soft)] text-[var(--text-secondary)] p-4 rounded-xl text-xs leading-relaxed"
                   >
                     {error}
                   </motion.div>
                 )}
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 sm:gap-3 pt-4">
                   {currentStep > 0 && (
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="ghost"
                       onClick={prevStep}
-                      className="flex-1 border-[var(--border-subtle)] text-[var(--text-secondary)] hover:bg-[var(--surface-secondary)] hover:text-[var(--text-primary)] bg-transparent rounded-lg h-9 text-sm"
+                      className="flex-1 text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] rounded-xl h-12 text-sm touch-manipulation"
                     >
                       Back
                     </Button>
@@ -362,23 +365,23 @@ export default function OnboardingPage() {
                       type="button"
                       onClick={nextStep}
                       disabled={!isStepValid()}
-                      className="flex-1 bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] text-[var(--bg-primary)] border-0 rounded-lg h-9 text-sm disabled:opacity-50"
+                      className="flex-1 bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] text-[var(--bg-primary)] border-0 rounded-xl h-12 text-sm font-medium transition-all duration-300 disabled:opacity-30 touch-manipulation"
                     >
                       Continue
-                      <ChevronRight className="w-4 h-4 ml-1" />
+                      <ChevronRight className="w-4 h-4 ml-2" />
                     </Button>
                   ) : (
                     <Button
                       type="submit"
                       disabled={!isFormValid() || isLoading}
-                      className="flex-1 bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] text-[var(--bg-primary)] border-0 rounded-lg h-9 text-sm disabled:opacity-50"
+                      className="flex-1 bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] text-[var(--bg-primary)] border-0 rounded-xl h-12 text-sm font-medium transition-all duration-300 disabled:opacity-30 touch-manipulation"
                     >
                       {isLoading ? (
-                        <span className="animate-pulse">Creating...</span>
+                        <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                       ) : (
                         <>
-                          Continue
-                          <Check className="w-4 h-4 ml-1" />
+                          Finalize
+                          <Check className="w-4 h-4 ml-2" />
                         </>
                       )}
                     </Button>
@@ -392,18 +395,18 @@ export default function OnboardingPage() {
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-center py-8"
+              className="text-center py-12"
             >
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                className="w-6 h-6 mx-auto mb-4 rounded-full border border-[var(--border-default)] border-t-[var(--text-primary)]"
+                transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                className="w-10 h-10 mx-auto mb-6 rounded-full border-2 border-[var(--border-subtle)] border-t-[var(--text-primary)]"
               />
-              <h3 className="text-base font-medium text-[var(--text-primary)] mb-1">
-                Creating your profile
+              <h3 className="text-lg font-medium text-[var(--text-primary)] mb-2 font-playfair italic">
+                Architecting your profile
               </h3>
-              <p className="text-sm text-[var(--text-tertiary)]">
-                Please wait...
+              <p className="text-sm text-[var(--text-tertiary)] font-light tracking-wide">
+                Aligning the stars...
               </p>
             </motion.div>
           )}

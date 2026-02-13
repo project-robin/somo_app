@@ -31,12 +31,12 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
       className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}
     >
       {isUser ? (
-        <div className="flex gap-3 max-w-[85%]">
+        <div className="flex gap-2 sm:gap-3 max-w-[90%] sm:max-w-[85%]">
           <div className="flex flex-col items-end gap-1.5">
             <motion.div
               initial={{ opacity: 0.8 }}
               animate={{ opacity: 1 }}
-              className="bg-gradient-to-br from-[var(--surface-secondary)] to-[var(--surface-primary)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-2xl rounded-tr-sm px-4 py-3 whitespace-pre-wrap text-sm leading-relaxed shadow-sm relative overflow-hidden"
+              className="bg-gradient-to-br from-[var(--surface-secondary)] to-[var(--surface-primary)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-2xl rounded-tr-sm px-3 sm:px-4 py-2.5 sm:py-3 whitespace-pre-wrap text-sm leading-relaxed shadow-sm relative overflow-hidden"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--accent-warm-soft)] to-transparent opacity-0 animate-shimmer pointer-events-none" />
               {message.content}
@@ -45,25 +45,25 @@ export function ChatMessage({ message, isStreaming }: ChatMessageProps) {
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--accent-warm)] to-[var(--accent-warm-soft)] flex items-center justify-center shadow-md"
+            className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-[var(--accent-warm)] to-[var(--accent-warm-soft)] flex items-center justify-center shadow-md"
           >
-            <User className="w-4 h-4 text-[var(--bg-primary)]" />
+            <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--bg-primary)]" />
           </motion.div>
         </div>
       ) : (
-        <div className="flex gap-3 max-w-[85%]">
+        <div className="flex gap-2 sm:gap-3 max-w-[90%] sm:max-w-[85%]">
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="flex-shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--surface-secondary)] to-[var(--surface-primary)] border border-[var(--border-subtle)] flex items-center justify-center shadow-sm"
+            className="flex-shrink-0 w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-br from-[var(--surface-secondary)] to-[var(--surface-primary)] border border-[var(--border-subtle)] flex items-center justify-center shadow-sm"
           >
-            <Bot className="w-4 h-4 text-[var(--text-secondary)]" />
+            <Bot className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--text-secondary)]" />
           </motion.div>
           <div className="flex flex-col gap-1.5 w-full min-w-0">
             <motion.div
               initial={{ opacity: 0.9 }}
               animate={{ opacity: 1 }}
-              className="bg-[var(--surface-primary)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-2xl rounded-tl-sm px-4 py-3 text-sm leading-relaxed overflow-hidden relative"
+              className="bg-[var(--surface-primary)] border border-[var(--border-subtle)] text-[var(--text-primary)] rounded-2xl rounded-tl-sm px-3 sm:px-4 py-2.5 sm:py-3 text-sm leading-relaxed overflow-hidden relative"
             >
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Sparkles, Star, Moon, Sun, Heart, ChevronDown } from 'lucide-react';
+import { Send, Sparkles, Star, Moon, Sun, Heart, ChevronDown, Loader2 } from 'lucide-react';
 import { useChatSession } from '@/hooks/useChatSession';
 import { useSessionTitles } from '@/hooks/useSessionTitles';
 import { Button } from '@/components/ui/button';
@@ -130,21 +130,30 @@ export default function ChatPage() {
       />
 
       <div className="flex-1 flex flex-col relative overflow-hidden">
-        {sessionTitle && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="border-b border-[var(--border-subtle)] bg-[var(--bg-primary)]/80 backdrop-blur-sm px-4 py-3 sticky top-0 z-10"
-          >
-            <h1 className="text-sm font-medium text-[var(--text-secondary)] truncate max-w-2xl mx-auto flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-[var(--accent-warm)]" />
-              {sessionTitle}
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="border-b border-[var(--border-subtle)] bg-[var(--bg-primary)]/80 backdrop-blur-md px-3 sm:px-4 py-2.5 sm:py-3 sticky top-0 z-10 flex items-center justify-between safe-area-pt"
+        >
+          <div className="flex items-center gap-2 sm:gap-3 overflow-hidden min-w-0">
+            {/* Mobile Sidebar Toggle Spacer - button is fixed but we need space here if it overlaps */}
+            <div className="w-9 md:hidden flex-shrink-0" />
+
+            <h1 className="text-xs sm:text-sm font-medium text-[var(--text-secondary)] truncate flex items-center gap-1.5 sm:gap-2">
+              <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[var(--accent-warm)] flex-shrink-0" />
+              <span className="truncate">{sessionTitle || 'New Conversation'}</span>
             </h1>
-          </motion.div>
-        )}
+          </div>
+
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="inline-flex px-1.5 sm:px-2 py-0.5 rounded-full bg-[var(--surface-secondary)] border border-[var(--border-subtle)] text-[8px] sm:text-[9px] font-bold uppercase tracking-wider text-[var(--text-tertiary)]">
+              Alpha
+            </span>
+          </div>
+        </motion.div>
 
         <div
-          className="flex-1 overflow-y-auto p-4 scroll-smooth relative"
+          className="flex-1 overflow-y-auto p-4 md:p-6 scroll-smooth relative"
           ref={scrollContainerRef}
         >
           {!isLoaded || isLoadingSession ? (
@@ -187,7 +196,7 @@ export default function ChatPage() {
                 <p className="text-[var(--text-tertiary)] mb-8 text-sm leading-relaxed">
                   Ask me anything about your life, career, relationships, or spirituality.
                 </p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {suggestions.map((suggestion, i) => (
                     <motion.button
                       key={suggestion.text}
@@ -195,10 +204,10 @@ export default function ChatPage() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 + i * 0.08 }}
                       onClick={() => setInput(`Tell me about my ${suggestion.text.toLowerCase()}`)}
-                      className={`px-3 py-2.5 rounded-xl text-sm bg-gradient-to-br ${suggestion.gradient} border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all duration-200 flex items-center gap-2 group`}
+                      className={`px-3 py-3 sm:py-2.5 rounded-xl text-sm bg-gradient-to-br ${suggestion.gradient} border border-[var(--border-subtle)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-default)] transition-all duration-200 flex items-center justify-center sm:justify-start gap-2 group`}
                     >
-                      <suggestion.icon className="w-4 h-4 text-[var(--accent-warm)] group-hover:scale-110 transition-transform" />
-                      {suggestion.text}
+                      <suggestion.icon className="w-4 h-4 text-[var(--accent-warm)] group-hover:scale-110 transition-transform flex-shrink-0" />
+                      <span className="truncate">{suggestion.text}</span>
                     </motion.button>
                   ))}
                 </div>
@@ -229,26 +238,26 @@ export default function ChatPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={() => scrollToBottom(true, 'smooth')}
-                className="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-[var(--surface-secondary)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] flex items-center justify-center shadow-lg transition-all duration-200 z-10"
+                className="absolute bottom-4 right-3 sm:right-4 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-[var(--surface-secondary)] border border-[var(--border-default)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-hover)] flex items-center justify-center shadow-lg transition-all duration-200 z-10 touch-manipulation"
                 aria-label="Scroll to bottom"
               >
-                <ChevronDown className="w-5 h-5" />
+                <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5" />
               </motion.button>
             )}
           </AnimatePresence>
         </div>
 
-        <div className="border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]/80 backdrop-blur-sm p-4">
-          <form onSubmit={handleSendMessage} className="flex gap-2 max-w-2xl mx-auto">
-            <div className="relative flex-1">
+        <div className="border-t border-[var(--border-subtle)] bg-[var(--bg-primary)]/80 backdrop-blur-md p-3 sm:p-4 pb-6 sm:pb-4 safe-area-pb">
+          <form onSubmit={handleSendMessage} className="flex gap-2 sm:gap-2.5 max-w-3xl mx-auto items-end">
+            <div className="relative flex-1 min-w-0">
               <Input
                 ref={inputRef}
                 type="text"
-                placeholder="Message..."
+                placeholder="Message Astro Shiva..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={isStreaming || !isLoaded || !isSignedIn}
-                className="w-full bg-[var(--surface-primary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)] focus:border-[var(--accent-warm)] focus:bg-[var(--surface-secondary)] rounded-xl h-11 text-sm pr-12 transition-all duration-200"
+                className="w-full bg-[var(--surface-primary)] border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] focus:border-[var(--border-hover)] focus:bg-[var(--surface-secondary)] rounded-2xl h-11 sm:h-12 text-sm pr-10 sm:pr-12 transition-all duration-300 shadow-sm"
               />
               <AnimatePresence>
                 {isStreaming && (
@@ -258,13 +267,13 @@ export default function ChatPage() {
                     exit={{ opacity: 0, scale: 0.8 }}
                     className="absolute right-3 top-1/2 -translate-y-1/2"
                   >
-                    <div className="flex gap-1">
+                    <div className="flex gap-1 px-2">
                       {[0, 1, 2].map((i) => (
                         <motion.div
                           key={i}
                           animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1, 0.8] }}
                           transition={{ duration: 1, repeat: Infinity, delay: i * 0.15 }}
-                          className="w-1.5 h-1.5 rounded-full bg-[var(--accent-warm)]"
+                          className="w-1.5 h-1.5 rounded-full bg-[var(--text-secondary)]"
                         />
                       ))}
                     </div>
@@ -275,20 +284,23 @@ export default function ChatPage() {
             <Button
               type="submit"
               disabled={!input.trim() || isStreaming || !isLoaded || !isSignedIn}
-              className="bg-gradient-to-r from-[var(--accent-warm)] to-[var(--accent-warm-soft)] hover:opacity-90 text-[var(--bg-primary)] border-0 rounded-xl h-11 px-5 transition-all duration-200 disabled:opacity-50 font-medium"
+              className="bg-[var(--text-primary)] hover:bg-[var(--text-secondary)] text-[var(--bg-primary)] border-0 rounded-2xl h-11 w-11 sm:h-12 sm:w-12 flex-shrink-0 transition-all duration-300 disabled:opacity-30 touch-manipulation"
             >
               {isStreaming ? (
                 <motion.div
                   animate={{ rotate: 360 }}
                   transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 >
-                  <Sparkles className="w-4 h-4" />
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5" />
                 </motion.div>
               ) : (
-                <Send className="w-4 h-4" />
+                <Send className="w-4 h-4 sm:w-5 sm:h-5" />
               )}
             </Button>
           </form>
+          <p className="text-[10px] text-center text-[var(--text-muted)] mt-3 tracking-wide uppercase opacity-50">
+            Private Alpha &bull; Universal Assistant
+          </p>
         </div>
       </div>
     </div>

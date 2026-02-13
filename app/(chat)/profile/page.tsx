@@ -152,7 +152,7 @@ export default function ProfilePage() {
 
   if (!isLoaded || state === 'loading') {
     return (
-      <div className="flex-1 min-h-screen bg-[var(--bg-primary)] p-6 flex items-center justify-center w-full">
+      <div className="flex-1 min-h-screen bg-[var(--bg-primary)] p-6 flex items-center justify-center w-full grok">
         <ProfileSkeleton />
       </div>
     );
@@ -160,7 +160,7 @@ export default function ProfilePage() {
 
   if (error) {
     return (
-      <div className="flex-1 min-h-screen bg-[var(--bg-primary)] p-6 flex items-center justify-center w-full">
+      <div className="flex-1 min-h-screen bg-[var(--bg-primary)] p-6 flex items-center justify-center w-full grok">
         <ErrorMessage error={error} onRetry={refetch} />
       </div>
     );
@@ -168,7 +168,7 @@ export default function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="flex-1 min-h-screen bg-[var(--bg-primary)] p-6 flex items-center justify-center w-full">
+      <div className="flex-1 min-h-screen bg-[var(--bg-primary)] p-6 flex items-center justify-center w-full grok">
         <ErrorMessage
           error={{
             code: 'UNKNOWN_ERROR',
@@ -182,27 +182,27 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex-1 min-h-screen bg-[var(--bg-primary)] w-full">
+    <div className="flex-1 min-h-screen bg-[var(--bg-primary)] w-full grok overflow-y-auto">
       <motion.div
-        className="max-w-2xl mx-auto p-6 md:py-12"
+        className="max-w-2xl mx-auto p-6 md:py-16"
         variants={containerVariants}
         initial="hidden"
         animate="visible"
       >
         {/* Header */}
-        <motion.div variants={itemVariants} className="mb-8">
+        <motion.div variants={itemVariants} className="mb-12">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => router.push('/chat')}
-            className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-transparent p-0 h-auto mb-6 -ml-1"
+            className="text-[var(--text-tertiary)] hover:text-[var(--text-primary)] hover:bg-transparent p-0 h-auto mb-10 -ml-1 group"
           >
-            <ArrowLeft className="w-4 h-4 mr-1.5" />
-            <span className="text-sm">Back</span>
+            <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+            <span className="text-[10px] font-bold uppercase tracking-widest">Back to Chat</span>
           </Button>
 
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-lg overflow-hidden bg-[var(--surface-secondary)] flex-shrink-0">
+          <div className="flex items-center gap-6">
+            <div className="w-20 h-20 rounded-2xl overflow-hidden bg-[var(--surface-secondary)] border border-[var(--border-subtle)] flex-shrink-0 shadow-xl">
               {user?.imageUrl ? (
                 <img
                   src={user.imageUrl}
@@ -211,27 +211,30 @@ export default function ProfilePage() {
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-[var(--text-tertiary)]" />
+                  <User className="w-8 h-8 text-[var(--text-tertiary)]" />
                 </div>
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl font-semibold text-[var(--text-primary)] truncate">
+              <h1 className="text-3xl font-semibold text-[var(--text-primary)] truncate font-playfair italic">
                 {profile.name}
               </h1>
-              <p className="text-sm text-[var(--text-tertiary)] truncate">
+              <p className="text-sm text-[var(--text-tertiary)] font-light tracking-wide truncate">
                 {profile.email}
               </p>
             </div>
             {isRefetching && (
-              <div className="w-2 h-2 rounded-full bg-[var(--text-tertiary)] animate-pulse" />
+              <div className="w-2 h-2 rounded-full bg-[var(--accent-warm)] animate-pulse" />
             )}
           </div>
         </motion.div>
 
         {/* Profile Info */}
-        <motion.section variants={itemVariants} className="mb-6">
-          <div className="bg-[var(--surface-primary)] border border-[var(--border-subtle)] rounded-lg p-4">
+        <motion.section variants={itemVariants} className="mb-10">
+          <h2 className="text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-[0.2em] mb-4 ml-1">
+            Celestial Origins
+          </h2>
+          <div className="bg-[var(--surface-primary)] border border-[var(--border-subtle)] rounded-2xl p-6 backdrop-blur-sm">
             <InfoRow
               icon={Calendar}
               label="Date of Birth"
@@ -253,14 +256,14 @@ export default function ProfilePage() {
         {/* Astrological Summary */}
         {profile.astroProfile?.astroSummary && (
           <motion.section variants={itemVariants}>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-medium text-[var(--text-tertiary)]">
-                Profile Summary
+            <div className="flex items-center justify-between mb-4 ml-1">
+              <h2 className="text-[10px] font-bold text-[var(--text-tertiary)] uppercase tracking-[0.2em]">
+                Cosmic Summary
               </h2>
               <CopyButton text={profile.astroProfile.astroSummary} />
             </div>
-            <div className="bg-[var(--surface-primary)] border border-[var(--border-subtle)] rounded-lg p-4">
-              <div className="prose prose-sm max-w-none prose-p:text-[var(--text-secondary)] prose-p:text-sm prose-p:leading-relaxed prose-headings:text-[var(--text-primary)]">
+            <div className="bg-[var(--surface-primary)] border border-[var(--border-subtle)] rounded-2xl p-6 backdrop-blur-sm shadow-inner">
+              <div className="prose prose-sm max-w-none prose-p:text-[var(--text-secondary)] prose-p:text-sm prose-p:leading-relaxed prose-headings:text-[var(--text-primary)] font-light">
                 <ReactMarkdown remarkPlugins={[remarkGfm]}>
                   {profile.astroProfile.astroSummary}
                 </ReactMarkdown>
@@ -270,9 +273,9 @@ export default function ProfilePage() {
         )}
 
         {/* Footer */}
-        <motion.div variants={itemVariants} className="mt-8 pt-6 border-t border-[var(--border-subtle)]">
-          <p className="text-xs text-[var(--text-muted)]">
-            Member since {new Date(profile.createdAt).toLocaleDateString('en-US', {
+        <motion.div variants={itemVariants} className="mt-16 pt-8 border-t border-[var(--border-subtle)] text-center">
+          <p className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-medium">
+            Member of the Inner Circle since {new Date(profile.createdAt).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
             })}
