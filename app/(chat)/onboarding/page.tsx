@@ -198,12 +198,22 @@ export default function OnboardingPage() {
     }
   };
 
-  const isStepValid = () => {
+  // Ephemeris date range constants
+const MIN_EPHEMERIS_DATE = '1899-07-29';
+const MAX_EPHEMERIS_DATE = '2053-10-09';
+
+const isStepValid = () => {
     switch (currentStep) {
       case 0:
         return formData.name.length >= 2;
-      case 1:
-        return formData.dateOfBirth && formData.timeOfBirth;
+      case 1: {
+        if (!formData.dateOfBirth || !formData.timeOfBirth) return false;
+        // Validate date is within ephemeris range
+        const date = new Date(formData.dateOfBirth);
+        const minDate = new Date(MIN_EPHEMERIS_DATE);
+        const maxDate = new Date(MAX_EPHEMERIS_DATE);
+        return date >= minDate && date <= maxDate;
+      }
       case 2:
         return formData.place.length >= 2 && formData.latitude !== 0 && formData.longitude !== 0;
       default:
@@ -320,8 +330,13 @@ export default function OnboardingPage() {
                           value={formData.dateOfBirth}
                           onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
                           required
+                          min={MIN_EPHEMERIS_DATE}
+                          max={MAX_EPHEMERIS_DATE}
                           className="bg-[var(--surface-secondary)] border-[var(--border-subtle)] text-[var(--text-primary)] rounded-xl h-12 text-base sm:text-sm transition-all duration-300 touch-manipulation"
                         />
+                        <p className="text-[10px] text-[var(--text-muted)] ml-1">
+                          Valid range: July 29, 1899 - October 9, 2053
+                        </p>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="timeOfBirth" className="text-[var(--text-secondary)] text-[11px] font-bold uppercase tracking-wider ml-1">
@@ -376,22 +391,31 @@ export default function OnboardingPage() {
                         <AnimatePresence>
                           {showGeocodingResults && geocodingResults.length > 0 && (
                             <motion.div
-                              initial={{ opacity: 0, y: -5 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -5 }}
-                              className="absolute z-50 left-0 right-0 top-full mt-1 bg-[var(--surface-primary)] border border-[var(--border-default)] rounded-xl shadow-lg max-h-48 overflow-y-auto"
+                              initial={{ opacity: 0, y: -5, scale: 0.98 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: -5, scale: 0.98 }}
+                              transition={{ duration: 0.15 }}
+                              className="absolute z-50 left-0 right-0 top-full mt-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl max-h-56 overflow-y-auto"
                             >
+                              <div className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                                <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                                  Select a location
+                                </p>
+                              </div>
                               {geocodingResults.map((result, index) => (
                                 <button
                                   key={index}
                                   type="button"
                                   onClick={() => handleSelectLocation(result)}
-                                  className="w-full px-4 py-3 text-left hover:bg-[var(--surface-hover)] transition-colors border-b border-[var(--border-subtle)] last:border-0"
+                                  className="w-full px-4 py-3 text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-0 last:rounded-b-xl"
                                 >
-                                  <p className="text-sm text-[var(--text-primary)] truncate">
-                                    {result.display_name}
+                                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                                    {result.display_name.split(',')[0]}
                                   </p>
-                                  <p className="text-xs text-[var(--text-tertiary)] mt-0.5">
+                                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                                    {result.display_name.split(',').slice(1).join(',')}
+                                  </p>
+                                  <p className="text-[10px] text-emerald-600 dark:text-emerald-400 mt-1 font-mono">
                                     {parseFloat(result.lat).toFixed(4)}, {parseFloat(result.lon).toFixed(4)}
                                   </p>
                                 </button>
