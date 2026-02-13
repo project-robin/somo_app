@@ -39,3 +39,29 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# clerk configuration (can include secrets)
+/.clerk/
+
+# agent directories
+.agent/
+.agents/
+.claude/
+.codex/
+.factory/
+.gemini/
+.goose/
+.kilocode/
+.opencode/
+
+# test screenshots and images
+audit-*.png
+test-*.png
+improved-*.png
+streaming-fixed.png
+markdown-formatted.png
+
+# misc
+!
+telemetry-id
+opencode.json
