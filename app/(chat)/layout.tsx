@@ -8,7 +8,7 @@ export default function ChatLayout({
   children: ReactNode;
 }>) {
   return (
-    <div className="flex h-screen w-full">
+    <div className="h-screen w-full">
       {children}
     </div>
   );

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sidebar, DesktopSidebar } from '@/components/Sidebar';
 import { ChatMessage } from '@/components/ChatMessage';
+import { CosmicBackground } from '@/components/CosmicBackground';
 
 const suggestions = [
   { icon: Star, text: 'Career guidance', gradient: 'from-amber-500/20 to-orange-500/20' },
@@ -107,29 +108,38 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-screen w-full bg-[var(--bg-primary)] grok">
-      <DesktopSidebar
-        currentSessionId={currentSessionId}
-        onSelectSession={handleSelectSession}
-        onNewChat={handleNewChat}
-        sessions={sessions}
-        isLoading={isLoadingSessions}
-        error={sessionsError}
-        reload={reloadSessions}
-        onDeleteSession={handleDeleteSession}
-      />
+    <div className="flex h-screen w-full bg-[var(--bg-primary)] grok relative">
+      {/* Cosmic background - stars and particles */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <CosmicBackground starCount={50} enableParticles={true} enableOrbs={true} />
+      </div>
 
-      <Sidebar
-        currentSessionId={currentSessionId}
-        onSelectSession={handleSelectSession}
-        onNewChat={handleNewChat}
-        sessions={sessions}
-        isLoading={isLoadingSessions}
-        error={sessionsError}
-        onDeleteSession={handleDeleteSession}
-      />
+      <div className="relative z-10">
+        <DesktopSidebar
+          currentSessionId={currentSessionId}
+          onSelectSession={handleSelectSession}
+          onNewChat={handleNewChat}
+          sessions={sessions}
+          isLoading={isLoadingSessions}
+          error={sessionsError}
+          reload={reloadSessions}
+          onDeleteSession={handleDeleteSession}
+        />
+      </div>
 
-      <div className="flex-1 flex flex-col relative overflow-hidden">
+      <div className="relative z-10">
+        <Sidebar
+          currentSessionId={currentSessionId}
+          onSelectSession={handleSelectSession}
+          onNewChat={handleNewChat}
+          sessions={sessions}
+          isLoading={isLoadingSessions}
+          error={sessionsError}
+          onDeleteSession={handleDeleteSession}
+        />
+      </div>
+
+      <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
